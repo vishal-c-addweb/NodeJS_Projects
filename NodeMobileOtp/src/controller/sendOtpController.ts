@@ -11,7 +11,7 @@ const sendOtpController = {
      * @returns {*}
      */
     loginRegister: async function loginRegister(req: Request, res: Response) {
-        var messagebird = require('messagebird')('9pRSR4ladJjJHRGiV5Of35xW5');
+        var messagebird = require('messagebird')('api-key');
         var otp = otpGenerator.generate(6, { upperCase: false, specialChars: false, alphabets: false, digits: true });
         var params = {
             'originator': 'MessageBird',
@@ -43,7 +43,7 @@ const sendOtpController = {
      * @returns {*}
      */
     userData: async function userData(req: Request, res: Response) {
-        var messagebird = require('messagebird')('9pRSR4ladJjJHRGiV5Of35xW5');
+        var messagebird = require('messagebird')('api-key');
         messagebird.messages.read('b265884fb5164e6eacdb1736f27a4350', function (err: any, response: any) {
             if (err) {
                 return console.log(err);
