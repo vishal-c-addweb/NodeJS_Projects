@@ -23,6 +23,7 @@ function createDoseObject(req: Request) {
     };
     return doseFields;
 }
+
 async function scheduleFirstDose(users: IMembers, user: IUser, req: Request) {
     let center: IVaccineCenter = await VaccineCenter.findOne({ "centerName": req.body.address });
     if (center.isAvailable === false) {
@@ -40,6 +41,7 @@ async function scheduleFirstDose(users: IMembers, user: IUser, req: Request) {
         responseCode = responsecode.Created;
     }
 }
+
 async function scheduleSecondDose(users: IMembers, user: IUser, req: Request) {
     let first: any = users.firstDose;
     let second: any = users.secondDose;
@@ -72,6 +74,7 @@ async function scheduleSecondDose(users: IMembers, user: IUser, req: Request) {
         responseCode = responsecode.Forbidden;
     }
 }
+
 export async function scheduleDoseService(req: Request) {
     let user: IUser = await User.findById(req.userId);
     if (!user) {

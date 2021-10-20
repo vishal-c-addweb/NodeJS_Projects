@@ -14,6 +14,6 @@ router.post("/center/pincode", vaccineCenterValidation.validationBodyRulesForGet
 
 router.post("/center/city&state", vaccineCenterValidation.validationBodyRulesForGetCenterByCityState,vaccineCenterApiController.getcenterbycitystate);
 
-router.post("/center/filter",vaccineCenterApiController.filterCener);
+router.post("/center/filter",vaccineCenterValidation.validationBodyRulesForFilterCener,vaccineCenterApiController.filterCener);
 
 export default router;

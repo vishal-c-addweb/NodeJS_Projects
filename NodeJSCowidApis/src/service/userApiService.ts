@@ -18,6 +18,7 @@ function createToken(user: IUser) {
         { expiresIn: config.get("jwtExpiration") }
     );
 }
+
 export async function userService(req: Request) {
     const { mobile, password } = req.body;
     const salt: string = await bcrypt.genSalt(10);

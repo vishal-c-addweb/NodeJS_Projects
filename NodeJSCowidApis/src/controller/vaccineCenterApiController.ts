@@ -8,6 +8,7 @@ const { Validator } = require('node-input-validator');
 const { validationResult } = require('express-validator');
 
 const vaccineCenterApiController = {
+
     /**
      * Request a data from user and add new vaccine center.
      * @param req
@@ -30,6 +31,7 @@ const vaccineCenterApiController = {
             }
         }
     },
+
     /**
      * Request a data from user and update vaccine center by id.
      * @param req
@@ -37,17 +39,9 @@ const vaccineCenterApiController = {
      * @returns {*}
      */
     updatevaccinecenter: async function updatevaccinecenter(req: Request, res: Response) {
-        const validate = new Validator(req.body, {
-            centerId: 'required|string',
-            date: 'string',
-            name: 'string',
-            dose1: 'integer',
-            dose2: 'integer',
-            age: 'string'
-        })
-        const matched: boolean = await validate.check();
-        if (!matched) {
-            let meta: object = { message: "Bad Request", status: "Failed", errors: validate.errors };
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            let meta: object = { message: "Bad Request", status: "Failed", errors: errors.array() };
             successErrorResponse(meta, dataArray, responsecode.Bad_Request, res);
         } else {
             try {
@@ -60,6 +54,7 @@ const vaccineCenterApiController = {
             }
         }
     },
+
     /**
      * Request a data from user and get vaccine center by pincode.
      * @param req
@@ -82,6 +77,7 @@ const vaccineCenterApiController = {
             }
         }
     },
+
     /**
      * Request a data from user and get vaccine center by city and state
      * @param res
@@ -103,23 +99,16 @@ const vaccineCenterApiController = {
             }
         }
     },
+
     /**
      * Request a data from user and filter center
      * @param res
      * @returns {*}
      */
     filterCener: async function filterCener(req: Request, res: Response) {
-        const validate = new Validator(req.body, {
-            pinCode: 'integer',
-            city: 'string',
-            state: 'string',
-            cost: 'string',
-            name: 'string',
-            age: 'string'
-        })
-        const matched: boolean = await validate.check();
-        if (!matched) {
-            let meta: object = { message: "Bad Request", status: "Failed", errors: validate.errors };
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            let meta: object = { message: "Bad Request", status: "Failed", errors: errors.array() };
             successErrorResponse(meta, dataArray, responsecode.Bad_Request, res);
         } else {
             try {

@@ -8,6 +8,7 @@ let message: string;
 let status: string;
 let data: object;
 let responseCode: number;
+
 function createDoseObject(doses: any) {
     const doseFields: object = {
         address: doses.address,
@@ -20,6 +21,7 @@ function createDoseObject(doses: any) {
     };
     return doseFields;
 }
+
 function calculateDueAndLastDate(first: any, users: any) {
     let month: number;
     if (first.vaccineType === "cowaxin") {
@@ -39,6 +41,7 @@ function calculateDueAndLastDate(first: any, users: any) {
     };
     return users.secondDose = doseFields;
 }
+
 async function setFirstDoseStatus(users: IMembers, user: IUser) {
     users.vaccinatedType = "Partially vaccinated";
     let first: object = users.firstDose;
@@ -47,12 +50,14 @@ async function setFirstDoseStatus(users: IMembers, user: IUser) {
     calculateDueAndLastDate(first, users);
     return await user.save();
 }
+
 async function setSecondDoseStatus(users: IMembers, user: IUser) {
     users.vaccinatedType = "Successfully Vaccinated"
     let second: object = users.secondDose;
     users.secondDose = createDoseObject(second);;
     return await user.save();
 }
+
 async function calculateFirstDose(users: IMembers, user: IUser) {
     let first: any = users.firstDose;
     if (first === undefined) {
@@ -75,6 +80,7 @@ async function calculateFirstDose(users: IMembers, user: IUser) {
         }
     }
 }
+
 async function calculateSecondDose(users: IMembers, user: IUser) {
     let first: any = users.firstDose;
     let second: any = users.secondDose;
@@ -112,6 +118,7 @@ async function calculateSecondDose(users: IMembers, user: IUser) {
         }
     }
 }
+
 async function calculateDose(users: IMembers, user: IUser, req: Request) {
     if (req.body.dose === "first") {
         await calculateFirstDose(users, user)
@@ -124,6 +131,7 @@ async function calculateDose(users: IMembers, user: IUser, req: Request) {
         responseCode = responsecode.Not_Found;
     }
 }
+
 async function checkSecretCode(users: IMembers, user: IUser, req: Request) {
     if (users.secretCode === req.body.secretCode) {
         await calculateDose(users, user, req)
@@ -134,6 +142,7 @@ async function checkSecretCode(users: IMembers, user: IUser, req: Request) {
         responseCode = responsecode.Not_Found;
     }
 }
+
 export async function vaccinatedApiService(req: Request) {
     let user: IUser = await User.findById(req.userId);
     if (!user) {
