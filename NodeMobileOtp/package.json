@@ -18,10 +18,12 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "config": "^3.1.0",
+    "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "messagebird": "^3.7.1",
     "mongoose": "^5.5.7",
     "otp-generator": "^3.0.0",
+    "springedge": "^1.0.6",
     "webpack-node-externals": "^3.0.0"
   },
   "devDependencies": {
