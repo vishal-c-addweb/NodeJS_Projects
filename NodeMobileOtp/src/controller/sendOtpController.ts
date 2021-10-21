@@ -1,66 +1,58 @@
-import bcrypt from "bcrypt";
 import { Response, Request } from "express";
-const otpGenerator = require('otp-generator')
-import Otp, { IOtp } from "../model/Otp";
+const otpGenerator = require('otp-generator');
+var springedge = require('springedge');
+import Otp, {IOtp} from "../model/Otp";
+require('dotenv').config();
 
 const sendOtpController = {
     /**
-     * Request a mobile & password from User and login or register the user and return jwt token.
+     * Request a mobile from user return response.
      * @param req
      * @param res
      * @returns {*}
      */
-    loginRegister: async function loginRegister(req: Request, res: Response) {
-        var messagebird = require('messagebird')('api-key');
-        var otp = otpGenerator.generate(6, { upperCase: false, specialChars: false, alphabets: false, digits: true });
-        var params = {
-            'originator': 'MessageBird',
-            'recipients': [
-                req.body.mobile
+    sendOtp: async function sendOtp(req: Request, res: Response) {
+        let otp: number = otpGenerator.generate(6, { upperCase: false, specialChars: false, alphabets: false, digits: true });
+        let params: object = {
+            'apikey': process.env.SPRING_EDGE_API_KEY, // API Key 
+            'sender': process.env.SPRING_EDGE_SENDER, // Sender Name 
+            'to': [
+                req.body.mobile  //Moblie Number 
             ],
-            'body': 'Otp message for Cowid-19 your OTP is ' + otp
+            'message': 'Hello ' + otp +', This is a test message from spring edge',
+            'format': 'json'
         };
-        messagebird.messages.create(params, function (err: any, response: any) {
+        springedge.messages.send(params, 3000, function (err: any, response: any) {
             if (err) {
                 console.log(err);
                 return res.json(err);
+            } else {
+                let otps: IOtp = new Otp({
+                    otp: otp,
+                    expiration_time: new Date(new Date().getTime() + 3 * 60000),
+                    verified: false
+                });
+                otps.save();
+                return res.json(response);
             }
-            const otpFields: object = {
-                otp: otp,
-                expiration_time: new Date(new Date().getTime() + 3 * 60000),
-                verified: false
-            };
-            otp = new Otp(otpFields);
-            otp.save();
-            return res.json(response);
         });
     },
 
     /**
-     * Request a jwt token from User and return user data.
+     * Request a otp from user and verify and return response.
      * @param req
      * @param res
      * @returns {*}
      */
-    userData: async function userData(req: Request, res: Response) {
-        var messagebird = require('messagebird')('api-key');
-        messagebird.messages.read('b265884fb5164e6eacdb1736f27a4350', function (err: any, response: any) {
-            if (err) {
-                return console.log(err);
-            }
-            console.log(response);
-        });
-    },
-
     verify: async function verify(req: Request, res: Response) {
-        var otp = req.body.otp;
-        var notExpire = await Otp.findOne({ otp: otp, verified: false, expiration_time: { $gt: new Date() } });
+        var otp: number = req.body.otp;
+        var notExpire: IOtp = await Otp.findOne({ otp: otp, verified: false, expiration_time: { $gt: new Date() } });
         if (notExpire) {
-            res.status(200).json("your otp verified successfully");
             await Otp.updateOne(
                 { otp: otp },
                 { verified: true }
             );
+            res.status(200).json("your otp verified successfully");
         } else {
             res.status(403).json("your otp expired");
         }

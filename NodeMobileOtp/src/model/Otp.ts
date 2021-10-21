@@ -2,10 +2,10 @@ import { Document, Model, model, Schema } from "mongoose";
 import mongoose from "mongoose";
 
 /**
- * Interface to model the User Schema for TypeScript.
- * @param mobile:number
- * @param password: string
- * @param members:array
+ * Interface to model the Otp Schema for TypeScript.
+ * @param otp:number
+ * @param expiration_time: Date
+ * @param verified:boolean
  */
 
 export interface IOtp extends Document {
