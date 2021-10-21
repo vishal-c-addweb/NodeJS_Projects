@@ -1,7 +1,7 @@
-import bcrypt from "bcrypt";
 import { Response, Request } from "express";
-const otpGenerator = require('otp-generator')
-import Otp, { IOtp } from "../model/Otp";
+const otpGenerator = require('otp-generator');
+var springedge = require('springedge');
+import Otp from "../model/Otp";
 
 const sendOtpController = {
     /**
@@ -11,28 +11,30 @@ const sendOtpController = {
      * @returns {*}
      */
     loginRegister: async function loginRegister(req: Request, res: Response) {
-        var messagebird = require('messagebird')('api-key');
         var otp = otpGenerator.generate(6, { upperCase: false, specialChars: false, alphabets: false, digits: true });
         var params = {
-            'originator': 'MessageBird',
-            'recipients': [
-                req.body.mobile
+            'apikey': 'api-key', // API Key 
+            'sender': 'SEDEMO', // Sender Name 
+            'to': [
+                req.body.mobile  //Moblie Number 
             ],
-            'body': 'Otp message for Cowid-19 your OTP is ' + otp
+            'message': 'Hello ' + otp +', This is a test message from spring edge',
+            'format': 'json'
         };
-        messagebird.messages.create(params, function (err: any, response: any) {
+        springedge.messages.send(params, 3000, function (err: any, response: any) {
             if (err) {
                 console.log(err);
                 return res.json(err);
+            } else {
+                const otpFields: object = {
+                    otp: otp,
+                    expiration_time: new Date(new Date().getTime() + 3 * 60000),
+                    verified: false
+                };
+                otp = new Otp(otpFields);
+                otp.save();
+                return res.json(response);
             }
-            const otpFields: object = {
-                otp: otp,
-                expiration_time: new Date(new Date().getTime() + 3 * 60000),
-                verified: false
-            };
-            otp = new Otp(otpFields);
-            otp.save();
-            return res.json(response);
         });
     },
 
@@ -43,7 +45,7 @@ const sendOtpController = {
      * @returns {*}
      */
     userData: async function userData(req: Request, res: Response) {
-        var messagebird = require('messagebird')('api-key');
+        var messagebird = require('messagebird')('bsXVrYsqrf3xbyMuBFe5IEf05');
         messagebird.messages.read('b265884fb5164e6eacdb1736f27a4350', function (err: any, response: any) {
             if (err) {
                 return console.log(err);
