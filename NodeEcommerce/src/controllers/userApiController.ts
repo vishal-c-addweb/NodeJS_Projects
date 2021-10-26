@@ -11,14 +11,20 @@ require('dotenv').config();
 const userController = {
     register: async function register(req: Request, res: Response) {
         try {
-            const newUser: IUser = new User({
-                userName: req.body.userName,
-                email: req.body.email,
-                password: CryptoJs.AES.encrypt(req.body.password, process.env.PASS_SECRET)
-            });
-            const savedUser: any = await newUser.save();
-            let meta: object = { message: "Registered Successfully", status: "Success"};
-            responseFunction(meta, savedUser, responsecode.Created, res);
+            let user: any = await User.findOne({ userName: req.body.userName });
+            if (!user) {
+                const newUser: IUser = new User({
+                    userName: req.body.userName,
+                    email: req.body.email,
+                    password: CryptoJs.AES.encrypt(req.body.password, process.env.PASS_SECRET)
+                });
+                const savedUser: any = await newUser.save();
+                let meta: object = { message: "Registered Successfully", status: "Success" };
+                responseFunction(meta, savedUser, responsecode.Created, res);
+            } else {
+                let meta: object = { message: "User Already Register", status: "Failed" };
+                responseFunction(meta, dataArray, responsecode.Forbidden, res);
+            }
         } catch (error) {
             let meta: object = { message: "Server error", status: "Failed" };
             responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
@@ -58,7 +64,7 @@ const userController = {
             req.body.password = CryptoJs.AES.encrypt(req.body.password, process.env.PASS_SECRET).toString();
         }
         try {
-            if (req.isAdmin) {
+            if (req.userId === req.params.id || req.isAdmin) {
                 const updatedUser = await User.findByIdAndUpdate(req.params.id, {
                     $set: req.body
                 }, { new: true });
@@ -77,10 +83,6 @@ const userController = {
         try {
             if (req.isAdmin) {
                 await User.findByIdAndDelete(req.params.id);
-                let result = {
-                    "meta": { "status": 200, "message": "deleted successfully" },
-                    "data": { "data": {} }
-                };
                 let meta: object = { message: "User Deleted successfully", status: "Success" };
                 responseFunction(meta, dataArray, responsecode.Success, res);
             } else {
@@ -94,11 +96,11 @@ const userController = {
 
     getUser: async function getUser(req: Request, res: Response) {
         try {
-            const user = await User.findById(req.params.id);
+            const user: any = await User.findById(req.params.id);
             const { password, ...others } = user._doc;
             if (user) {
                 let meta: object = { message: "User Fetched successfully", status: "Success" };
-                responseFunction(meta, user, responsecode.Success, res);
+                responseFunction(meta, others, responsecode.Success, res);
             } else {
                 let meta: object = { message: "user not found", status: "Failed" };
                 responseFunction(meta, dataArray, responsecode.Not_Found, res);
@@ -106,7 +108,47 @@ const userController = {
         } catch (error) {
             return res.status(500).json(error);
         }
-    }
+    },
+    getAllUser: async function getAllUser(req: Request, res: Response) {
+        const query: any = req.query.new;
+        try {
+            const users: any = query ? await User.find().sort({ _id: -1 }).limit(1) : await User.find();
+            if (users) {
+                let meta: object = { message: "Users Fetched successfully", status: "Success" };
+                responseFunction(meta, users, responsecode.Success, res);
+            } else {
+                let meta: object = { message: "user not found", status: "Failed" };
+                responseFunction(meta, dataArray, responsecode.Not_Found, res);
+            }
+        } catch (error) {
+            return res.status(500).json(error);
+        }
+    },
+
+    getUserStats: async function getUserStats(req: Request, res: Response) {
+        const date: Date = new Date();
+        const lastYear: Date = new Date(date.setFullYear(date.getFullYear() - 1));
+        try {
+            const data: any = await User.aggregate([
+                { $match: { createdAt: { $gt: lastYear } } },
+                {
+                    $project: {
+                        month: { $month: "$createdAt" },
+                    },
+                },
+                {
+                    $group:{
+                        _id:"$month",
+                        total: {$sum:1},
+                    },
+                },
+            ]);
+            let meta: object = { message: "Users Fetched successfully", status: "Success" };
+            responseFunction(meta, data, responsecode.Success, res);
+        } catch (error) {
+            return res.status(500).json(error);
+        }
+    },
 }
 
 export default userController;

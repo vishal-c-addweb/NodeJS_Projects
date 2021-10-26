@@ -11,6 +11,10 @@ router.put('/:id', authenticate, userController.update);
 
 router.delete('/:id', authenticate, userController.deleteUser);
 
-router.get('/:id', authenticate, userController.getUser);
+router.get('/stats', authenticate, userController.getUserStats);
+
+router.get('/:id', userController.getUser);
+
+router.get('/', userController.getAllUser);
 
 export default router;
