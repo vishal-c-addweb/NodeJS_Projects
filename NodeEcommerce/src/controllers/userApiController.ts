@@ -13,14 +13,14 @@ const userController = {
     register: async function register(req: Request, res: Response) {
         try {
             let user: any = await User.findOne({ userName: req.body.userName });
-            if (!user) {    
-                const newUser: IUser = new User({
+            if (!user) {
+                let newUser: IUser = new User({
                     userName: req.body.userName,
                     email: req.body.email,
                     password: CryptoJs.AES.encrypt(req.body.password, process.env.PASS_SECRET)
                 });
                 const savedUser: any = await newUser.save();
-                await mailService(req.body.email,req.body.userName,req.body.password);
+                await mailService(req.body.email, req.body.userName, req.body.password);
                 let meta: object = { message: "Registered Successfully", status: "Success" };
                 responseFunction(meta, savedUser, responsecode.Created, res);
             } else {
@@ -139,9 +139,9 @@ const userController = {
                     },
                 },
                 {
-                    $group:{
-                        _id:"$month",
-                        total: {$sum:1},
+                    $group: {
+                        _id: "$month",
+                        total: { $sum: 1 },
                     },
                 },
             ]);
@@ -153,31 +153,28 @@ const userController = {
     },
 
     forgotPassword: async function forgotPassword(req: Request, res: Response) {
-        let password: string; 
+        let password: string;
         try {
-            let users: any = await User.find();
-            let a = [];
-            for (let i = 0; i < users.length; i++) {
-                const hashPassword: any = CryptoJs.AES.decrypt(users[i].password, process.env.PASS_SECRET);
+            let user: any = await User.findById(req.userId);
+            if (user) {
+                const hashPassword: any = CryptoJs.AES.decrypt(user.password, process.env.PASS_SECRET);
                 password = hashPassword.toString(CryptoJs.enc.Utf8);
                 if (req.body.currentPassword === password) {
                     if (req.body.newPassword === req.body.confirmPassword) {
-                        await User.updateOne(
-                            { "password" : users[i].password },
-                            { password: CryptoJs.AES.encrypt(req.body.newPassword, process.env.PASS_SECRET)}
-                        );
+                        await User.updateOne({ "_id": req.userId }, { $set: { "password": CryptoJs.AES.encrypt(req.body.newPassword, process.env.PASS_SECRET).toString() } });
+                        await mailService(user.email,user.userName,req.body.newPassword);
                         let meta: object = { message: "Password Updated Successfully", status: "Success" };
                         responseFunction(meta, dataArray, responsecode.Success, res);
                     } else {
                         let meta: object = { message: "your new password and confirm password not match", status: "Failed" };
-                        responseFunction(meta, dataArray, responsecode.Bad_Request, res); 
+                        responseFunction(meta, dataArray, responsecode.Bad_Request, res);
                     }
+                } else {
+                    let meta: object = { message: "your current password is wrong", status: "Failed" };
+                    responseFunction(meta, dataArray, responsecode.Not_Found, res);
                 }
-                a.push(password);
-            }
-            if (!a.includes(req.body.currentPassword)) {
-                let meta: object = { message: "your current password is wrong", status: "Failed" };
-                responseFunction(meta, dataArray, responsecode.Not_Found, res); 
+            } else {
+                res.json([]);
             }
         } catch (error) {
             return res.status(500).json(error);
