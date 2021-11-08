@@ -1,18 +1,18 @@
 import { Router } from "express";
 import orderController from "../controllers/orderApiController";
-import authenticate from "../middleware/authenticate";
+import { ValidateToken, ValidateTokenAndAuthorization, ValidateTokenAndAdmin } from "../middleware/authenticate";
 const router: Router = Router();
 
-router.post('/', authenticate, orderController.addOrder);
+router.post('/add', ValidateToken, orderController.addOrder);
 
-router.put('/:id', authenticate, orderController.updateOrder);
+router.get('/find/:userId', ValidateTokenAndAuthorization, orderController.getOrder);
 
-router.delete('/:id', authenticate, orderController.deleteOrder);
+router.get('/all', ValidateTokenAndAdmin, orderController.getAllOrder);
 
-router.get('/:userId', authenticate, orderController.getOrder);
+router.put('/update/:id', ValidateTokenAndAdmin, orderController.updateOrder);
 
-router.get('/', authenticate, orderController.getAllOrder);
+router.delete('/delete/:id', ValidateTokenAndAdmin, orderController.deleteOrder);
 
-router.get('/income', authenticate, orderController.getMonthlyIncome);
+router.get('/income', ValidateTokenAndAdmin, orderController.getMonthlyIncome);
 
 export default router;

@@ -1,16 +1,16 @@
 import { Router } from "express";
 import cartController from "../controllers/cartApiController";
-import authenticate from "../middleware/authenticate";
+import { ValidateToken, ValidateTokenAndAuthorization, ValidateTokenAndAdmin } from "../middleware/authenticate";
 const router: Router = Router();
 
-router.post('/', authenticate, cartController.addToCart);
+router.post('/add', ValidateToken, cartController.addToCart);
 
-router.put('/:id', authenticate, cartController.updateCart);
+router.get('/find/:userId', ValidateTokenAndAuthorization, cartController.getCart);
 
-router.delete('/:id', authenticate, cartController.deleteCart);
+router.get('/all', ValidateTokenAndAdmin, cartController.getAllCart);
 
-router.get('/:userId', authenticate, cartController.getCart);
+router.put('/update/:id', ValidateTokenAndAuthorization, cartController.updateCart);
 
-router.get('/', authenticate, cartController.getAllCart);
+router.delete('/delete/:id', ValidateTokenAndAuthorization, cartController.deleteCart);
 
 export default router;

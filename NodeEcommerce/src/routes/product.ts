@@ -1,16 +1,16 @@
 import { Router } from "express";
 import productController from "../controllers/productApiController";
-import authenticate from "../middleware/authenticate";
+import { ValidateToken,ValidateTokenAndAdmin } from "../middleware/authenticate";
 const router: Router = Router();
 
-router.post('/', authenticate, productController.addProduct);
+router.post('/add', ValidateTokenAndAdmin, productController.addProduct);
 
-router.put('/:id', authenticate, productController.updateProduct);
+router.put('/update/:id', ValidateTokenAndAdmin, productController.updateProduct);
 
-router.delete('/:id', authenticate, productController.deleteProduct);
+router.delete('/delete/:id', ValidateTokenAndAdmin, productController.deleteProduct);
 
-router.get('/:id', productController.getProduct);
+router.get('/find/:id',ValidateToken, productController.getProduct);
 
-router.get('/', productController.getAllProduct);
+router.get('/all',ValidateTokenAndAdmin, productController.getAllProduct);
 
 export default router;

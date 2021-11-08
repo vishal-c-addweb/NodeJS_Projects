@@ -20,20 +20,15 @@ const orderController = {
 
     updateOrder: async function updateOrder(req: Request, res: Response) {
         try {
-            if (req.isAdmin) {
-                const updatedOrder: IOrder = await Order.findByIdAndUpdate(
-                    req.params.id,
-                    {
-                        $set: req.body,
-                    },
-                    { new: true }
-                );
-                let meta: object = { message: "Order Updated Successfully", status: "Success" };
-                responseFunction(meta, updatedOrder, responsecode.Created, res);
-            } else {
-                let meta: object = { message: "you are not allowed to do that", status: "Failed" };
-                responseFunction(meta, dataArray, responsecode.Forbidden, res);
-            }
+            const updatedOrder: IOrder = await Order.findByIdAndUpdate(
+                req.params.id,
+                {
+                    $set: req.body,
+                },
+                { new: true }
+            );
+            let meta: object = { message: "Order Updated Successfully", status: "Success" };
+            responseFunction(meta, updatedOrder, responsecode.Created, res);
         } catch (error) {
             let meta: object = { message: "Server error", status: "Failed" };
             responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
@@ -42,14 +37,9 @@ const orderController = {
 
     deleteOrder: async function deleteOrder(req: Request, res: Response) {
         try {
-            if (req.isAdmin) {
-                await Order.findByIdAndDelete(req.params.id);
-                let meta: object = { message: "Order Deleted successfully", status: "Success" };
-                responseFunction(meta, dataArray, responsecode.Success, res);
-            } else {
-                let meta: object = { message: "you are not allowed to do that", status: "Failed" };
-                responseFunction(meta, dataArray, responsecode.Forbidden, res);
-            }
+            await Order.findByIdAndDelete(req.params.id);
+            let meta: object = { message: "Order Deleted successfully", status: "Success" };
+            responseFunction(meta, dataArray, responsecode.Success, res);
         } catch (error) {
             return res.status(500).json(error);
         }
@@ -58,17 +48,12 @@ const orderController = {
     getOrder: async function getOrder(req: Request, res: Response) {
         try {
             const order: any = await Order.findOne({ userId: req.params.userId });
-            if (req.userId === req.params.id || req.isAdmin) {
-                if (order) {
-                    let meta: object = { message: "Order Fetched successfully", status: "Success" };
-                    responseFunction(meta, order, responsecode.Success, res);
-                } else {
-                    let meta: object = { message: "Order not found", status: "Failed" };
-                    responseFunction(meta, dataArray, responsecode.Not_Found, res);
-                }
+            if (order) {
+                let meta: object = { message: "Order Fetched successfully", status: "Success" };
+                responseFunction(meta, order, responsecode.Success, res);
             } else {
-                let meta: object = { message: "you are not allowed to do that", status: "Failed" };
-                responseFunction(meta, dataArray, responsecode.Forbidden, res);
+                let meta: object = { message: "Order not found", status: "Failed" };
+                responseFunction(meta, dataArray, responsecode.Not_Found, res);
             }
         } catch (error) {
             return res.status(500).json(error);
@@ -77,18 +62,13 @@ const orderController = {
 
     getAllOrder: async function getAllOrder(req: Request, res: Response) {
         try {
-            if (req.isAdmin) {
-                let orders: any = await Order.find();
-                if (orders) {
-                    let meta: object = { message: "Cart Fetched successfully", status: "Success" };
-                    responseFunction(meta, orders, responsecode.Success, res);
-                } else {
-                    let meta: object = { message: "Cart not found", status: "Failed" };
-                    responseFunction(meta, dataArray, responsecode.Not_Found, res);
-                }
+            let orders: any = await Order.find();
+            if (orders) {
+                let meta: object = { message: "Cart Fetched successfully", status: "Success" };
+                responseFunction(meta, orders, responsecode.Success, res);
             } else {
-                let meta: object = { message: "you are not allowed to do that", status: "Failed" };
-                responseFunction(meta, dataArray, responsecode.Forbidden, res);
+                let meta: object = { message: "Cart not found", status: "Failed" };
+                responseFunction(meta, dataArray, responsecode.Not_Found, res);
             }
         } catch (error) {
             return res.status(500).json(error);
@@ -100,32 +80,27 @@ const orderController = {
         const lastMonth: Date = new Date(date.setMonth(date.getMonth() - 1));
         const previousMonth: Date = new Date(new Date().setMonth(lastMonth.getMonth() - 1));
         try {
-            if (req.isAdmin) {
-                const income: any = await Order.aggregate([
-                    { $match: { createdAt: { $gte: previousMonth } } },
-                    {
-                        $project: {
-                            month: { $month: "$createdAt" },
-                            sales: "$month",
-                        },
+            const income: any = await Order.aggregate([
+                { $match: { createdAt: { $gte: previousMonth } } },
+                {
+                    $project: {
+                        month: { $month: "$createdAt" },
+                        sales: "$month",
                     },
-                    {
-                        $group: {
-                            _id: "$month",
-                            total: { $sum: "$sales" },
-                        },
+                },
+                {
+                    $group: {
+                        _id: "$month",
+                        total: { $sum: "$sales" },
                     },
-                ]);
-                if (income) {
-                    let meta: object = { message: "Income Fetched successfully", status: "Success" };
-                    responseFunction(meta, income, responsecode.Success, res);
-                } else {
-                    let meta: object = { message: "Income not found", status: "Failed" };
-                    responseFunction(meta, dataArray, responsecode.Not_Found, res);
-                }
+                },
+            ]);
+            if (income) {
+                let meta: object = { message: "Income Fetched successfully", status: "Success" };
+                responseFunction(meta, income, responsecode.Success, res);
             } else {
-                let meta: object = { message: "you are not allowed to do that", status: "Failed" };
-                responseFunction(meta, dataArray, responsecode.Forbidden, res);
+                let meta: object = { message: "Income not found", status: "Failed" };
+                responseFunction(meta, dataArray, responsecode.Not_Found, res);
             }
         } catch (error) {
             return res.status(500).json(error);

@@ -1,22 +1,44 @@
-import { Router } from "express";
+import { Router,Response } from "express";
 import userController from "../controllers/userApiController";
-import authenticate from "../middleware/authenticate";
+import { ValidateToken, ValidateTokenAndAdmin, ValidateTokenAndAuthorization,authenticate } from "../middleware/authenticate";
 const router: Router = Router();
 
-router.post('/register', userController.register);
+//server started and api running
+router.get('/',authenticate, (req, res) => {
+    if (localStorage.getItem("jwt")) {
+        res.redirect('/');
+    } else {
+        res.redirect('/login');
+    }
+});
 
-router.post('/login', userController.login);
+router.get('/register',authenticate, (req, res) => {
+    res.render('register.ejs');
+});
 
-router.put('/:id', authenticate, userController.update);
+router.post('/register',authenticate, userController.register);
 
-router.delete('/:id', authenticate, userController.deleteUser);
+router.get('/login',authenticate, (req, res) => {
+    res.render('login.ejs');
+});
 
-router.get('/stats', authenticate, userController.getUserStats);
+router.get('/logout', (req, res) => {
+    localStorage.clear();
+    res.redirect('/login');
+});
 
-router.get('/:id', userController.getUser);
+router.post('/login',authenticate, userController.login);
 
-router.get('/', userController.getAllUser);
+router.post('/forgotPassword', ValidateToken, userController.forgotPassword);
 
-router.post('/forgotPassword', authenticate, userController.forgotPassword);
+router.get('/find/:id', ValidateToken, userController.getUser);
+
+router.get('/all', ValidateTokenAndAdmin, userController.getAllUser);
+
+router.put('/update/:id', ValidateTokenAndAuthorization, userController.update);
+
+router.delete('/delete/:id', ValidateTokenAndAdmin, userController.deleteUser);
+
+router.get('/stats', ValidateToken, userController.getUserStats);
 
 export default router;

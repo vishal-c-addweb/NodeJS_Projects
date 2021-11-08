@@ -8,14 +8,15 @@ import mongoose from "mongoose";
  * @param amount:number
  * @param address:object
  * @param status:string
- * @param timestamps:string
+ * @param timestamps:string    
  */
 
 export interface IOrder extends Document {
     userId: string;
     products: [{
         productId: string,
-        quantity: number
+        quantity: number,
+        _id: false
     }];
     amount: number;
     address: object;
@@ -26,7 +27,8 @@ const orderSchema: Schema = new Schema({
     userId: { type: String, required: true },
     products: [{
         productId: { type: String },
-        quantity: { type: Number, default: 1 }
+        quantity: { type: Number, default: 1 },
+        _id: false
     }],
     amount: { type: Number, required: true },
     address: { type: Object, required: true },

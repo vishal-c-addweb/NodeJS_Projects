@@ -5,6 +5,8 @@ import Request from "../types/Request";
 import { dataArray, responseFunction } from "../response_builder/responsefunction";
 import responsecode from "../response_builder/responsecode";
 import { mailService } from "../services/mail";
+import { LocalStorage } from "node-localstorage";
+global.localStorage = new LocalStorage('./scratch');
 const CryptoJs = require('crypto-js');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -20,44 +22,63 @@ const userController = {
                     password: CryptoJs.AES.encrypt(req.body.password, process.env.PASS_SECRET)
                 });
                 const savedUser: any = await newUser.save();
-                await mailService(req.body.email, req.body.userName, req.body.password);
-                let meta: object = { message: "Registered Successfully", status: "Success" };
-                responseFunction(meta, savedUser, responsecode.Created, res);
+                // await mailService(req.body.email, req.body.userName, req.body.password);
+                // let meta: object = { message: "Registered Successfully", status: "Success" };
+                // responseFunction(meta, savedUser, responsecode.Created, res);
+                req.flash('msg', 'successfully registered');
+                res.redirect('/login');
             } else {
-                let meta: object = { message: "User Already Register", status: "Failed" };
-                responseFunction(meta, dataArray, responsecode.Forbidden, res);
+                // let meta: object = { message: "User Already Register", status: "Failed" };
+                // responseFunction(meta, dataArray, responsecode.Forbidden, res);
+                req.flash('msg', 'already registered');
+                res.redirect('/register');
             }
         } catch (error) {
-            let meta: object = { message: "Server error", status: "Failed" };
-            responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
+            // let meta: object = { message: "Server error", status: "Failed" };
+            // responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
+            res.redirect('/register');
         }
     },
 
     login: async function login(req: Request, res: Response) {
         try {
             const user: any = await User.findOne({ userName: req.body.userName });
-            const hashPassword: any = CryptoJs.AES.decrypt(user.password, process.env.PASS_SECRET);
-            const password: string = hashPassword.toString(CryptoJs.enc.Utf8);
-            if (user && password === req.body.password) {
-                const { password, ...others } = user._doc;
-                const token: string = jwt.sign(
-                    { user_id: user._id, user_isAdmin: user.isAdmin },
-                    config.get("jwtSecret"),
-                    { expiresIn: config.get("jwtExpiration") }
-                );
-                let data: object = {
-                    "data": others,
-                    "token": token
-                };
-                let meta: object = { message: "logged in successfully", status: "Success" };
-                responseFunction(meta, data, responsecode.Success, res);
+            if (user) {
+                const hashPassword: any = CryptoJs.AES.decrypt(user.password, process.env.PASS_SECRET);
+                const password: string = hashPassword.toString(CryptoJs.enc.Utf8);
+                if (password === req.body.password) {
+                    const { password, ...others } = user._doc;
+                    const token: string = jwt.sign(
+                        { user_id: user._id, user_isAdmin: user.isAdmin },
+                        config.get("jwtSecret"),
+                        { expiresIn: config.get("jwtExpiration") }
+                    );
+                    let data: object = {
+                        "data": others,
+                        "token": token
+                    };
+                    // let meta: object = { message: "logged in successfully", status: "Success" };
+                    // responseFunction(meta, data, responsecode.Success, res);
+                    localStorage.setItem("jwt",token);
+                    req.flash('msg', 'logged in successfully');
+                    res.redirect('/');
+                } else {
+                    // let meta: object = { message: "wrong credential", status: "Failed" };
+                    // responseFunction(meta, dataArray, responsecode.Forbidden, res);
+                    req.flash('msg', 'wrong credential');
+                    res.redirect('/login');
+                }
             } else {
-                let meta: object = { message: "wrong credential", status: "Failed" };
-                responseFunction(meta, dataArray, responsecode.Forbidden, res);
+                // let meta: object = { message: "User not found", status: "Failed" };
+                // responseFunction(meta, dataArray, responsecode.Forbidden, res);
+                req.flash('msg', 'User not found');
+                res.redirect('/login');
             }
         } catch (error) {
-            let meta: object = { message: "Server error", status: "Failed" };
-            responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
+            // let meta: object = { message: "Server error", status: "Failed" };
+            // responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
+            req.flash('msg', 'Server error');
+            res.redirect('/login');
         }
     },
 
@@ -66,41 +87,39 @@ const userController = {
             req.body.password = CryptoJs.AES.encrypt(req.body.password, process.env.PASS_SECRET).toString();
         }
         try {
-            if (req.userId === req.params.id || req.isAdmin) {
+            const user: any = await User.findById(req.params.id);
+            if (user) {
                 const updatedUser = await User.findByIdAndUpdate(req.params.id, {
                     $set: req.body
                 }, { new: true });
                 let meta: object = { message: "User updated successfully", status: "Success" };
                 responseFunction(meta, updatedUser, responsecode.Success, res);
             } else {
-                let meta: object = { message: "you are not allowed to do that", status: "Failed" };
-                responseFunction(meta, dataArray, responsecode.Forbidden, res);
+                let meta: object = { message: "user not found", status: "Failed" };
+                responseFunction(meta, dataArray, responsecode.Not_Found, res);
             }
         } catch (error) {
-            return res.status(500).json(error);
+            let meta: object = { message: "Server error", status: "Failed" };
+            responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
         }
     },
 
     deleteUser: async function deleteUser(req: Request, res: Response) {
         try {
-            if (req.isAdmin) {
-                await User.findByIdAndDelete(req.params.id);
-                let meta: object = { message: "User Deleted successfully", status: "Success" };
-                responseFunction(meta, dataArray, responsecode.Success, res);
-            } else {
-                let meta: object = { message: "you are not allowed to do that", status: "Failed" };
-                responseFunction(meta, dataArray, responsecode.Forbidden, res);
-            }
+            await User.findByIdAndDelete(req.params.id);
+            let meta: object = { message: "User Deleted successfully", status: "Success" };
+            responseFunction(meta, dataArray, responsecode.Success, res);
         } catch (error) {
-            return res.status(500).json(error);
+            let meta: object = { message: "Server error", status: "Failed" };
+            responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
         }
     },
 
     getUser: async function getUser(req: Request, res: Response) {
         try {
             const user: any = await User.findById(req.params.id);
-            const { password, ...others } = user._doc;
             if (user) {
+                const { password, ...others } = user._doc;
                 let meta: object = { message: "User Fetched successfully", status: "Success" };
                 responseFunction(meta, others, responsecode.Success, res);
             } else {
@@ -108,9 +127,11 @@ const userController = {
                 responseFunction(meta, dataArray, responsecode.Not_Found, res);
             }
         } catch (error) {
-            return res.status(500).json(error);
+            let meta: object = { message: "Server error", status: "Failed" };
+            responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
         }
     },
+
     getAllUser: async function getAllUser(req: Request, res: Response) {
         const query: any = req.query.new;
         try {
@@ -123,7 +144,8 @@ const userController = {
                 responseFunction(meta, dataArray, responsecode.Not_Found, res);
             }
         } catch (error) {
-            return res.status(500).json(error);
+            let meta: object = { message: "Server error", status: "Failed" };
+            responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
         }
     },
 
@@ -148,7 +170,8 @@ const userController = {
             let meta: object = { message: "Users Fetched successfully", status: "Success" };
             responseFunction(meta, data, responsecode.Success, res);
         } catch (error) {
-            return res.status(500).json(error);
+            let meta: object = { message: "Server error", status: "Failed" };
+            responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
         }
     },
 
@@ -162,7 +185,7 @@ const userController = {
                 if (req.body.currentPassword === password) {
                     if (req.body.newPassword === req.body.confirmPassword) {
                         await User.updateOne({ "_id": req.userId }, { $set: { "password": CryptoJs.AES.encrypt(req.body.newPassword, process.env.PASS_SECRET).toString() } });
-                        await mailService(user.email,user.userName,req.body.newPassword);
+                        await mailService(user.email, user.userName, req.body.newPassword);
                         let meta: object = { message: "Password Updated Successfully", status: "Success" };
                         responseFunction(meta, dataArray, responsecode.Success, res);
                     } else {
@@ -174,10 +197,12 @@ const userController = {
                     responseFunction(meta, dataArray, responsecode.Not_Found, res);
                 }
             } else {
-                res.json([]);
+                let meta: object = { message: "user not found", status: "Failed" };
+                responseFunction(meta, dataArray, responsecode.Not_Found, res);
             }
         } catch (error) {
-            return res.status(500).json(error);
+            let meta: object = { message: "Server error", status: "Failed" };
+            responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
         }
     }
 }
