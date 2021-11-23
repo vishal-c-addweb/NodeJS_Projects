@@ -7,7 +7,7 @@ const router: Router = Router();
 // @route   POST user/addmember
 // @desc    Give JWT token & required fields, add member in members field.
 // @access  Private
-router.post("/addMember", authenticate, memberValidation.validationBodyRules, addmemberApiController.addMember);
+router.post("/addmember", authenticate, memberValidation.validationBodyRules, addmemberApiController.addMember);
 
 router.delete("/deletemember", authenticate, addmemberApiController.deleteMember);
 

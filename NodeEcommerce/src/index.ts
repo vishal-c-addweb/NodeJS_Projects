@@ -35,6 +35,6 @@ app.use('/api/cart', cart);
 app.use('/api/order', order);
 
 //start the server
-const server = app.listen(process.env.PORT || 3000, () =>
-    console.log(`server started on the port ${process.env.PORT || 3000}`)
+const server = app.listen(process.env.PORT || 4000, () =>
+    console.log(`server started on the port ${process.env.PORT || 4000}`)
 );

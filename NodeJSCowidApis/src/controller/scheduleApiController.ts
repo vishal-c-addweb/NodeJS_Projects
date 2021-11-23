@@ -1,6 +1,6 @@
 import { Response } from "express";
 import Request from "../types/Request";
-import { dataArray, successErrorResponse } from "../response_builder/responsefunction";
+import { dataArray, responseFunction } from "../response_builder/responsefunction";
 import responsecode from "../response_builder/responsecode";
 import * as scheduleApiService from "../service/scheduleApiService";
 import { IResult } from "../model/User";
@@ -17,15 +17,15 @@ const scheduleApiController = {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             let meta: object = { message: "Bad Request", status: "Failed", errors:  errors.array() };
-            successErrorResponse(meta, dataArray, responsecode.Bad_Request, res);
+            responseFunction(meta, dataArray, responsecode.Bad_Request, res);
         } else {
             try {
-                let result: IResult = await scheduleApiService.scheduleDoseService(req);
+                let result: any = await scheduleApiService.scheduleDoseService(req);
                 let meta: object = { message: result.message, status: result.status};
-                successErrorResponse(meta, result.data, result.responsecode, res);
+                responseFunction(meta, result.data, result.responsecode, res);
             } catch (err) {
                 let meta: object = { message: "Server error", status: "Failed" };
-                successErrorResponse(meta, dataArray, responsecode.Internal_Server_Error, res);
+                responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
             }
         }
     }

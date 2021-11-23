@@ -11,8 +11,6 @@ import { IUser } from "./User";
 export interface IProfile extends Document {
   user: IUser["_id"];
   firstName: string;
-  lastName: string;
-  username: string;
 }
 
 const profileSchema: Schema = new Schema({

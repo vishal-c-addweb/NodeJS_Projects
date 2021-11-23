@@ -3,7 +3,7 @@ import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import Payload from "../types/Payload";
 import Request from "../types/Request";
-import { dataArray, successErrorResponse } from "../response_builder/responsefunction";
+import { dataArray, responseFunction } from "../response_builder/responsefunction";
 import responsecode from "../response_builder/responsecode";
 
 export default function (req: Request, res: Response, next: NextFunction) {
@@ -12,7 +12,7 @@ export default function (req: Request, res: Response, next: NextFunction) {
   // Check if no token
   if (!token) {
     let meta: object = { message: "No token, authorization denied", status: "Failed" };
-    successErrorResponse(meta, dataArray, responsecode.Unauthorized, res);
+    responseFunction(meta, dataArray, responsecode.Unauthorized, res);
   }
   // Verify token
   try {
@@ -21,6 +21,6 @@ export default function (req: Request, res: Response, next: NextFunction) {
     next();
   } catch (err) {
     let meta: object = { message: "Token is not valid", status: "Failed" };
-    successErrorResponse(meta, dataArray, responsecode.Unauthorized, res);
+    responseFunction(meta, dataArray, responsecode.Unauthorized, res);
   }
 }

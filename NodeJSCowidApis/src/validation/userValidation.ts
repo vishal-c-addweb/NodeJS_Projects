@@ -1,6 +1,5 @@
 export {};
 const Schema = require("schema-js");
-
 const { body } = require('express-validator');
 
 exports.validationBodyRules = [

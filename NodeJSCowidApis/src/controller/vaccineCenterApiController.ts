@@ -1,6 +1,6 @@
 import { Response } from "express";
 import Request from "../types/Request";
-import { dataArray, successErrorResponse } from "../response_builder/responsefunction";
+import { dataArray, responseFunction } from "../response_builder/responsefunction";
 import responsecode from "../response_builder/responsecode";
 import * as vaccineCenterApiService from "../service/vaccineCenterApiService";
 import { IResult } from "../model/User";
@@ -19,15 +19,15 @@ const vaccineCenterApiController = {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             let meta: object = { message: "Bad Request", status: "Failed", errors: errors.array() };
-            successErrorResponse(meta, dataArray, responsecode.Bad_Request, res);
+            responseFunction(meta, dataArray, responsecode.Bad_Request, res);
         } else {
             try {
-                let result: IResult = await vaccineCenterApiService.addVaccineCenterService(req);
+                let result: any = await vaccineCenterApiService.addVaccineCenterService(req);
                 let meta: object = { message: result.message, status: result.status };
-                successErrorResponse(meta, result.data, result.responsecode, res);
+                responseFunction(meta, result.data, result.responsecode, res);
             } catch (err) {
                 let meta: object = { message: "Server error", status: "Failed" };
-                successErrorResponse(meta, dataArray, responsecode.Internal_Server_Error, res);
+                responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
             }
         }
     },
@@ -42,15 +42,15 @@ const vaccineCenterApiController = {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             let meta: object = { message: "Bad Request", status: "Failed", errors: errors.array() };
-            successErrorResponse(meta, dataArray, responsecode.Bad_Request, res);
+            responseFunction(meta, dataArray, responsecode.Bad_Request, res);
         } else {
             try {
-                let result: IResult = await vaccineCenterApiService.updateVaccineCenterService(req);
+                let result: any = await vaccineCenterApiService.updateVaccineCenterService(req);
                 let meta: object = { message: result.message, status: result.status };
-                successErrorResponse(meta, result.data, result.responsecode, res);
+                responseFunction(meta, result.data, result.responsecode, res);
             } catch (err) {
                 let meta: object = { message: "Server error", status: "Failed" };
-                successErrorResponse(meta, dataArray, responsecode.Internal_Server_Error, res);
+                responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
             }
         }
     },
@@ -65,15 +65,15 @@ const vaccineCenterApiController = {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             let meta: object = { message: "Bad Request", status: "Failed", errors: errors.array() };
-            successErrorResponse(meta, dataArray, responsecode.Bad_Request, res);
+            responseFunction(meta, dataArray, responsecode.Bad_Request, res);
         } else {
             try {
-                let result: IResult = await vaccineCenterApiService.getVaccineCenterByPincode(req);
+                let result: any = await vaccineCenterApiService.getVaccineCenterByPincode(req);
                 let meta: object = { message: result.message, status: result.status };
-                successErrorResponse(meta, result.data, result.responsecode, res);
+                responseFunction(meta, result.data, result.responsecode, res);
             } catch (err) {
                 let meta: object = { message: "Server error", status: "Failed" };
-                successErrorResponse(meta, dataArray, responsecode.Internal_Server_Error, res);
+                responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
             }
         }
     },
@@ -87,15 +87,15 @@ const vaccineCenterApiController = {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             let meta: object = { message: "Bad Request", status: "Failed", errors: errors.array() };
-            successErrorResponse(meta, dataArray, responsecode.Bad_Request, res);
+            responseFunction(meta, dataArray, responsecode.Bad_Request, res);
         } else {
             try {
-                let result: IResult = await vaccineCenterApiService.getVaccineCenterByCityState(req);
+                let result: any = await vaccineCenterApiService.getVaccineCenterByCityState(req);
                 let meta: object = { message: result.message, status: result.status };
-                successErrorResponse(meta, result.data, result.responsecode, res);
+                responseFunction(meta, result.data, result.responsecode, res);
             } catch (err) {
                 let meta: object = { message: "Server error", status: "Failed" };
-                successErrorResponse(meta, dataArray, responsecode.Internal_Server_Error, res);
+                responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
             }
         }
     },
@@ -109,15 +109,15 @@ const vaccineCenterApiController = {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             let meta: object = { message: "Bad Request", status: "Failed", errors: errors.array() };
-            successErrorResponse(meta, dataArray, responsecode.Bad_Request, res);
+            responseFunction(meta, dataArray, responsecode.Bad_Request, res);
         } else {
             try {
-                let result: IResult = await vaccineCenterApiService.filterVaccineCenter(req);
+                let result: any = await vaccineCenterApiService.filterVaccineCenter(req);
                 let meta: object = { message: result.message, status: result.status };
-                successErrorResponse(meta, result.data, result.responsecode, res);
+                responseFunction(meta, result.data, result.responsecode, res);
             } catch (err) {
                 let meta: object = { message: "Server error", status: "Failed" };
-                successErrorResponse(meta, dataArray, responsecode.Internal_Server_Error, res);
+                responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
             }
         }
     }

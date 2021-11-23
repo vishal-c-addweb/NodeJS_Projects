@@ -22,21 +22,21 @@ const userController = {
                     password: CryptoJs.AES.encrypt(req.body.password, process.env.PASS_SECRET)
                 });
                 const savedUser: any = await newUser.save();
-                // await mailService(req.body.email, req.body.userName, req.body.password);
-                // let meta: object = { message: "Registered Successfully", status: "Success" };
-                // responseFunction(meta, savedUser, responsecode.Created, res);
-                req.flash('msg', 'successfully registered');
-                res.redirect('/login');
+                await mailService(req.body.email, req.body.userName, req.body.password);
+                let meta: object = { message: "Registered Successfully", status: "Success" };
+                responseFunction(meta, savedUser, responsecode.Created, res);
+                // req.flash('msg', 'successfully registered');
+                // res.redirect('/login');
             } else {
-                // let meta: object = { message: "User Already Register", status: "Failed" };
-                // responseFunction(meta, dataArray, responsecode.Forbidden, res);
-                req.flash('msg', 'already registered');
-                res.redirect('/register');
+                let meta: object = { message: "User Already Register", status: "Failed" };
+                responseFunction(meta, dataArray, responsecode.Forbidden, res);
+                // req.flash('msg', 'already registered');
+                // res.redirect('/register');
             }
         } catch (error) {
-            // let meta: object = { message: "Server error", status: "Failed" };
-            // responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
-            res.redirect('/register');
+            let meta: object = { message: "Server error", status: "Failed" };
+            responseFunction(meta, dataArray, responsecode.Internal_Server_Error, res);
+            //res.redirect('/register');
         }
     },
 
@@ -57,16 +57,16 @@ const userController = {
                         "data": others,
                         "token": token
                     };
-                    // let meta: object = { message: "logged in successfully", status: "Success" };
-                    // responseFunction(meta, data, responsecode.Success, res);
-                    localStorage.setItem("jwt",token);
-                    req.flash('msg', 'logged in successfully');
-                    res.redirect('/');
+                    let meta: object = { message: "logged in successfully", status: "Success" };
+                    responseFunction(meta, data, responsecode.Success, res);
+                    // localStorage.setItem("jwt",token);
+                    // req.flash('msg', 'logged in successfully');
+                    // res.redirect('/');
                 } else {
-                    // let meta: object = { message: "wrong credential", status: "Failed" };
-                    // responseFunction(meta, dataArray, responsecode.Forbidden, res);
-                    req.flash('msg', 'wrong credential');
-                    res.redirect('/login');
+                    let meta: object = { message: "wrong credential", status: "Failed" };
+                    responseFunction(meta, dataArray, responsecode.Forbidden, res);
+                    // req.flash('msg', 'wrong credential');
+                    // res.redirect('/login');
                 }
             } else {
                 // let meta: object = { message: "User not found", status: "Failed" };

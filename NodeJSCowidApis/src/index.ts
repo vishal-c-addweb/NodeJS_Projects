@@ -27,7 +27,7 @@ app.use('/cowid-19', schedule);
 app.use('/cowid-19', vaccinated);
 app.use('/cowid-19', vaccinecenter);
 
-const port = app.get("port")
+const port = app.get("port");
 const server = app.listen(port, () =>
   console.log(`Server started on port ${port}`)
 );

@@ -8,8 +8,13 @@ import mongoose from "mongoose";
  * @param members:array
  */
 
+// export interface IResult {
+//   [key: string]: any
+// }
+
 export interface IResult {
-  [key: string]: any
+  meta: object,
+  data: object
 }
 
 export interface IMembers {
@@ -44,7 +49,7 @@ const userSchema: Schema = new Schema({
     secretCode: { type: String },
     vaccinatedType: { type: String },
     firstDose: { type: Object },
-    secondDose: { type: Object } 
+    secondDose: { type: Object }
   }, { _id: false }]
 });
 
