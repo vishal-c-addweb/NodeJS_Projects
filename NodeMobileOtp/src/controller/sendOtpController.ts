@@ -53,7 +53,7 @@ const sendOtpController = {
     verify: async function verify(req: Request, res: Response) {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json(errors.array());
+            return res.status(400).json(errors);
         } else {
             var otp: number = req.body.otp;
             var notExpire: IOtp = await Otp.findOne({ otp: otp, verified: false, expiration_time: { $gt: new Date() } });

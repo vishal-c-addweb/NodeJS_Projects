@@ -8,13 +8,11 @@ import mongoose from "mongoose";
  * @param members:array
  */
 
-// export interface IResult {
-//   [key: string]: any
-// }
-
 export interface IResult {
-  meta: object,
-  data: object
+  message: string,
+  status: string,
+  data: object,
+  responsecode: number
 }
 
 export interface IMembers {

@@ -1,5 +1,6 @@
 import moment from "moment";
 import Request from "../types/Request";
+import { IResult } from "../model/User";
 import { dataArray } from "../response_builder/responsefunction";
 import responsecode from "../response_builder/responsecode";
 import User, {IMembers,IUser} from "../model/User";
@@ -155,7 +156,7 @@ export async function vaccinatedApiService(req: Request) {
             await checkSecretCode(user.members[j], user, req);
         }
     }
-    let result: object = {
+    let result: IResult = {
         message: message,
         status: status,
         data: data,

@@ -1,10 +1,9 @@
 import { Response } from "express";
 import Request from "../types/Request";
-import User, { IUser } from "../model/User";
+import User, { IResult, IUser } from "../model/User";
 import { dataArray, responseFunction } from "../response_builder/responsefunction";
 import responsecode from "../response_builder/responsecode";
 import * as vaccinatedApiService from "../service/vaccinatedApiService";
-import { IResult } from "../model/User";
 const { validationResult } = require('express-validator');
 
 const vaccinatedApiController = {
@@ -21,7 +20,7 @@ const vaccinatedApiController = {
             responseFunction(meta, dataArray, responsecode.Bad_Request, res);
         } else {
             try {
-                let result: any = await vaccinatedApiService.vaccinatedApiService(req);
+                let result: IResult = await vaccinatedApiService.vaccinatedApiService(req);
                 let meta: object = { message: result.message, status: result.status };
                 responseFunction(meta, result.data, result.responsecode, res);
             } catch (err) {

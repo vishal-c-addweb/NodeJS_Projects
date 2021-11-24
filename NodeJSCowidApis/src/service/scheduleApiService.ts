@@ -1,5 +1,6 @@
 import User, { IMembers, IUser } from "../model/User";
 import Request from "../types/Request";
+import { IResult } from "../model/User";
 import { dataArray } from "../response_builder/responsefunction";
 import responsecode from "../response_builder/responsecode";
 import VaccineCenter,{ IVaccineCenter} from "../model/vaccineCenter";
@@ -98,7 +99,7 @@ export async function scheduleDoseService(req: Request) {
             }
         }
     }
-    let result: object = {
+    let result: IResult = {
         message: message,
         status: status,
         data: data,

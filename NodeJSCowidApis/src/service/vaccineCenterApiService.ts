@@ -2,6 +2,7 @@ import Request from "../types/Request";
 import { dataArray } from "../response_builder/responsefunction";
 import responsecode from "../response_builder/responsecode";
 import VaccineCenter, { IVaccineCenter } from "../model/vaccineCenter";
+import { IResult } from "../model/User";
 import moment from "moment";
 
 let message: string;
@@ -9,7 +10,7 @@ let status: string;
 let data: object;
 let responseCode: number;
 
-function createVaccineCenterObject(req: Request) {
+export function createVaccineCenterObject(req: Request) {
     const { centerName, address, cost, state, city, pinCode } = req.body;
     const vaccine: any = [{
         date: moment(new Date()).format("D MMMM y"),
@@ -32,28 +33,9 @@ function createVaccineCenterObject(req: Request) {
     return centerFields;
 }
 
-export async function addVaccineCenterService(req: Request) {
-    let center: any = await VaccineCenter.findOne({ "centerName": req.body.centerName });
-    if (center) {
-        message = "Center already exist";
-        status = "Success";
-        data = center;
-        responseCode = responsecode.Forbidden;
-    } else {
-        center = new VaccineCenter(createVaccineCenterObject(req));
-        await center.save();
-        message = "Center Created successfully";
-        status = "Success";
-        data = center;
-        responseCode = responsecode.Created;
-    }
-    let result: object = {
-        message: message,
-        status: status,
-        data: data,
-        responsecode: responseCode
-    }
-    return result;
+export async function getCenterByName(centerName:string) {
+    let center: any = await VaccineCenter.findOne({ "centerName": centerName });
+    return center;
 }
 
 export async function updateVaccineCenterService(req: Request) {
@@ -67,18 +49,18 @@ export async function updateVaccineCenterService(req: Request) {
     } else {
         let centers: any = await filteringVaccineCenterForAdd(req);
         if (centers.length === 0) {
-            message = "vaccine already addedd";
+            message = "vaccine already added";
             status = "Failed";
             data = dataArray;
             responseCode = responsecode.Forbidden;
         } else {
-            message = "vaccine addedd successfully";
+            message = "vaccine added successfully";
             status = "Success";
             data = centers;
             responseCode = responsecode.Created;
         }
     }
-    let result: object = {
+    let result: IResult = {
         message: message,
         status: status,
         data: data,
@@ -87,48 +69,14 @@ export async function updateVaccineCenterService(req: Request) {
     return result;
 }
 
-export async function getVaccineCenterByPincode(req: Request) {
-    let center: object[] = await VaccineCenter.find({ pinCode: req.body.pinCode });
-    if (center.length !== 0) {
-        message = "Center fetch successfully";
-        status = "Success";
-        data = center;
-        responseCode = responsecode.Success;
-    } else {
-        message = "Center not found";
-        status = "Failed";
-        data = dataArray;
-        responseCode = responsecode.Not_Found;
-    }
-    let result: object = {
-        message: message,
-        status: status,
-        data: data,
-        responsecode: responseCode
-    }
-    return result;
+export async function getVaccineCenterByPincode(pinCode:number) {
+    let center: object[] = await VaccineCenter.find({ pinCode: pinCode });
+    return center;
 }
 
-export async function getVaccineCenterByCityState(req: Request) {
-    let center: object[] = await VaccineCenter.find({ "state": req.body.state, "city": req.body.city });
-    if (center.length !== 0) {
-        message = "Center fetch successfully";
-        status = "Success";
-        data = center;
-        responseCode = responsecode.Success;
-    } else {
-        message = "Center not found";
-        status = "Failed";
-        data = dataArray;
-        responseCode = responsecode.Not_Found;
-    }
-    let result: object = {
-        message: message,
-        status: status,
-        data: data,
-        responsecode: responseCode
-    }
-    return result;
+export async function getVaccineCenterByCityState(state:string,city:string) {
+    let center: object[] = await VaccineCenter.find({ "state": state, "city": city });
+    return center;
 }
 
 async function filteringVaccineCenterForAdd(req: Request) {
@@ -185,65 +133,210 @@ async function filteringVaccineCenterForAdd(req: Request) {
     }
 }
 
-export async function filterVaccineCenter(req: Request) {
-    let pincode: number = req.body.pinCode ? req.body.pinCode : null;
-    let city: string = req.body.city ? req.body.city : null;
-    let state: string = req.body.state ? req.body.state : null;
-    let cost: any = req.body.cost ? req.body.cost : null;
-    let age: any = req.body.age ? req.body.age : null;
-    let name: any = req.body.name ? req.body.name : null;
-    let center: any;
-    if (pincode !== null && city === null && state === null) {
-        if (cost !== null) {
-            let costArray = cost.split(",");
-            console.log(costArray);
-            center = await VaccineCenter.find({ pinCode: pincode, "cost": costArray });
-        } else if (name !== null) {
-            let nameArray = name.split(",");
-            console.log(nameArray);
-            center = await VaccineCenter.aggregate([
-                { $match: { "pinCode": pincode, 'vaccine.name': { $in: nameArray } } },
-                {
-                    $project: {
-                        vaccine: {
-                            $filter: {
-                                input: '$vaccine',
-                                as: 'vaccine',
-                                cond: { $eq: ['$$vaccine.name', nameArray] }
-                            }
-                        }, centerName: 1
-                    }
-                }
-            ]);
-        } else {
-            center = await VaccineCenter.find({ pinCode: pincode });
-        }
-    } else if (pincode === null && city !== null && state !== null) {
-        if (cost !== null) {
-            center = await VaccineCenter.find({ pinCode: pincode, cost: cost });
-        } else {
-            center = await VaccineCenter.find({ pinCode: pincode });
+/* new api functions */
+export async function getVaccineCenterByPincodeAndCost(center:any,cost:string) {
+    let costArray = cost.split(",");
+    let centerArr: any = [];
+    for (let j = 0; j < center.length; j++) {
+        if (costArray.includes(center[j].cost)) {
+            let centerObj = getCenter(center[j],center[j].vaccine);
+            centerArr.push(centerObj);
         }
     }
-    if (center.length !== 0) {
-        message = "Center fetch successfully";
-        status = "Success";
-        data = center;
-        responseCode = responsecode.Success;
+    console.log(centerArr);
+    return centerArr;
+}
+
+export async function getVaccineCenterByPincodeAndAge(center:any,age:string) {
+    let ageArray: string[] = age.split(",");
+    let vaccine: any = [];
+    let centerArr: any = [];
+    for (let j = 0; j < center.length; j++) {
+        for (let k = 0; k < center[j].vaccine.length; k++) {
+            if (ageArray.includes(center[j].vaccine[k].age)) {
+                vaccine.push(center[j].vaccine[k]);
+            }
+        }
+        let centerObj = getCenter(center[j],vaccine);
+        if (centerObj.vaccine.length !== 0) {
+            centerArr.push(centerObj);
+        } else {
+
+        }
+        vaccine = [];
+    }
+    return centerArr;
+}
+
+export async function getVaccineCenterByPincodeAndName(center:any,name:string) {
+    let nameArray: string[] = name.split(",");
+    let vaccine: any = [];
+    let centerArr: any = [];
+    for (let j = 0; j < center.length; j++) {
+        for (let k = 0; k < center[j].vaccine.length; k++) {
+            if (nameArray.includes(center[j].vaccine[k].name)) {
+                vaccine.push(center[j].vaccine[k]);
+            }
+        }
+        let centerObj = getCenter(center[j],vaccine);
+        if (centerObj.vaccine.length !== 0) {
+            centerArr.push(centerObj);
+        }
+        vaccine = [];
+    }
+    return centerArr;
+}
+
+export async function getVaccineCenterByPincodeAndCostAndAge(center:any,cost:string,age:string) {
+    let costArray: string[] = cost.split(",");
+    let ageArray: string[] = age.split(",");
+    let vaccine: any = [];
+    let centerArr: any = [];
+    for (let j = 0; j < center.length; j++) {
+        for (let k = 0; k < center[j].vaccine.length; k++) {
+            if (costArray.includes(center[j].cost) && ageArray.includes(center[j].vaccine[k].age)) {
+                vaccine.push(center[j].vaccine[k]);
+            }
+        }
+        let centerObj = getCenter(center[j],vaccine);
+        if (centerObj.vaccine.length !== 0) {
+            centerArr.push(centerObj);
+        }
+        vaccine = [];
+    }
+    return centerArr;
+}
+
+export async function getVaccineCenterByPincodeAndAgeAndName(center:any,age:string,name:string) {
+    let ageArray: string[] = age.split(",");
+    let nameArray: string[] = name.split(",");
+    let vaccine: any = [];
+    let centerArr: any = [];
+    for (let j = 0; j < center.length; j++) {
+        for (let k = 0; k < center[j].vaccine.length; k++) {
+            if (ageArray.includes(center[j].vaccine[k].age) && nameArray.includes(center[j].vaccine[k].name)) {
+                vaccine.push(center[j].vaccine[k]);
+            }
+        }
+        let centerObj = getCenter(center[j],vaccine);
+        if (centerObj.vaccine.length !== 0) {
+            centerArr.push(centerObj);
+        }
+        vaccine = [];
+    }
+    return centerArr;
+}
+
+export async function getVaccineCenterByPincodeAndNameAndCost(center:any,name:string,cost:string) {
+    let nameArray: string[] = name.split(",");
+    let costArray: string[] = cost.split(",");
+    let vaccine: any = [];
+    let centerArr: any = [];
+    for (let j = 0; j < center.length; j++) {
+        for (let k = 0; k < center[j].vaccine.length; k++) {
+            if (nameArray.includes(center[j].vaccine[k].name) && costArray.includes(center[j].cost)) {
+                vaccine.push(center[j].vaccine[k]);
+            }
+        }
+        let centerObj = getCenter(center[j],vaccine);
+        if (centerObj.vaccine.length !== 0) {
+            centerArr.push(centerObj);
+        }
+        vaccine = [];
+    }
+    return centerArr;
+}
+
+export async function getVaccineCenterByPincodeAndCostAndAgeAndName(center:any,cost:string,name:string,age:string) {
+    let costArray: string[] = cost.split(",");
+    let nameArray: string[] = name.split(",");
+    let ageArray: string[] = age.split(",");
+    let vaccine: any = [];
+    let centerArr: any = [];
+    for (let j = 0; j < center.length; j++) {
+        for (let k = 0; k < center[j].vaccine.length; k++) {
+            if (costArray.includes(center[j].cost) && nameArray.includes(center[j].vaccine[k].name) && ageArray.includes(center[j].vaccine[k].age)) {
+                vaccine.push(center[j].vaccine[k]);
+            }
+        }
+        let centerObj = getCenter(center[j],vaccine);
+        if (centerObj.vaccine.length !== 0) {
+            centerArr.push(centerObj);
+        }
+        vaccine = [];
+    }
+    return centerArr;
+}
+
+export async function filterCenters(centers:object[],cost:string,age:string,name:string) {
+    let result:any;
+    if (cost === null && age === null && name === null) {
+        result = checkCenterIsExists(centers);
+    } else if (cost !== null && age === null && name === null) {
+        let center: object[] = await getVaccineCenterByPincodeAndCost(centers,cost);
+        result = checkCenterIsExists(center);
+    } else if (cost === null && age !== null && name === null) {
+        let center: any = await getVaccineCenterByPincodeAndAge(centers,age);   
+        result = checkCenterIsExists(center);
+    } else if (cost === null && age === null && name !== null) {
+        let center: any = await getVaccineCenterByPincodeAndName(centers, name);
+        result = checkCenterIsExists(center);
+    } else if (cost !== null && age !== null && name === null) {
+        let center: any = await getVaccineCenterByPincodeAndCostAndAge(centers, cost, age);
+        result = checkCenterIsExists(center);
+    } else if (cost === null && age !== null && name !== null) {
+        let center: any = await getVaccineCenterByPincodeAndAgeAndName(centers, cost, age);
+        result = checkCenterIsExists(center);
+    } else if (cost !== null && age === null && name !== null) {
+        let center: any = await getVaccineCenterByPincodeAndNameAndCost(centers, name, cost);
+        result = checkCenterIsExists(center);
+    } else if (cost !== null && age !== null && name !== null) {
+        let center: any = await getVaccineCenterByPincodeAndCostAndAgeAndName(centers,cost,name,age);
+        result = checkCenterIsExists(center);
     } else {
-        message = "Center not found";
-        status = "Failed";
-        data = dataArray;
-        responseCode = responsecode.Not_Found;
-    }
-    let result: object = {
-        message: message,
-        status: status,
-        data: data,
-        responsecode: responseCode
+        result = checkCenterIsExists(centers);
     }
     return result;
 }
 
-async function filterByPincode(req: Request) {
+function checkCenterIsExists(center: object[]) {
+    let result;
+    if (center.length === 0) {
+        result = {
+            meta: {
+                "response_code": responsecode.Not_Found,
+                "message": "Center not found",
+                "status": "Failed"
+            },
+            data: dataArray
+        }
+    } else {
+        result = {
+            meta: {
+                "response_code": responsecode.Success,
+                "message": "Center Fetched Successfully",
+                "status": "Success"
+            },
+            date: center
+        }
+    }
+    return result;
 }
+
+function getCenter(center:any,vaccine:any) {
+    let centerObj = {
+        _id: center.id,
+        centerName: center.centerName,
+        address: center.address,
+        vaccine: vaccine,
+        cost: center.cost,
+        state: center.state,
+        city: center.city,
+        pinCode: center.pinCode,
+        isAvailable: center.isAvailable
+    }
+    return centerObj;
+}
+
+
+
